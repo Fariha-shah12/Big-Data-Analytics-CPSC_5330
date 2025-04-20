@@ -69,3 +69,9 @@ pwd
 sudo find / -name textcorpora: Searches your system for the folder.
 
 pwd: Displays your current working directory.
+
+Once you are done with the labs make sure you stop the hdfs 
+
+```bash
+/usr/local/hadoop/sbin/stop-dfs.sh
+```
