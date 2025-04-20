@@ -1,0 +1,38 @@
+#!/bin/bash
+# longest-words: Runs WordLengthCount MapReduce job and extracts the 10 longest word lengths
+#Fariha shell script for part4 of lab01
+
+set -e  # Exit on error
+
+# === Configuration ===
+CLASS_NAME="WordLengthCount"
+HDFS_INPUT="/lab1/input"
+HDFS_OUTPUT="/lab1/output"
+LOCAL_OUTPUT="longest-words-output.txt"
+TEXT_SOURCE="/home/ubuntu/textcorpora/shakespeare-*"
+
+# === Clean up previous HDFS output if exists ===
+hdfs dfs -rm -r -f "$HDFS_INPUT" "$HDFS_OUTPUT" || true
+
+# === Upload input ===
+hdfs dfs -mkdir -p "$HDFS_INPUT"
+hdfs dfs -put -f $TEXT_SOURCE "$HDFS_INPUT/"
+
+# === Compile MapReduce job ===
+chmod +x ./compile-map-reduce
+./compile-map-reduce "$CLASS_NAME"
+
+# === Run MapReduce job ===
+chmod +x ./run-map-reduce
+./run-map-reduce "$CLASS_NAME" "$HDFS_INPUT" "$HDFS_OUTPUT"
+
+# === Merge and sort output ===
+hdfs dfs -getmerge "$HDFS_OUTPUT" "$LOCAL_OUTPUT"
+
+# === Show top 10 longest words ===
+echo "Top 10 longest word lengths with samples:"
+sort -k1,1nr "$LOCAL_OUTPUT" | head -n 10
+
+# === Optional clean-up ===
+hdfs dfs -rm -r -f "$HDFS_INPUT" "$HDFS_OUTPUT"
+rm -f "$CLASS_NAME.jar" *.class "$LOCAL_OUTPUT"

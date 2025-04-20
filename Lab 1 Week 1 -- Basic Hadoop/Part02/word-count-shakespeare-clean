@@ -1,0 +1,43 @@
+#!/bin/bash
+# word-count-shakespeare-clean
+# Usage: ./word-count-shakespeare-clean N
+# This script uses WordCountClean to do word count and shows top N results.
+
+set -e  # Exit immediately if a command exits with a non-zero status
+
+# === INPUT ARGUMENTS ===
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 <number_of_top_words>"
+    exit 1
+fi
+
+TOP_N=$1
+
+# === HDFS & LOCAL PATHS ===
+hdfs_dir="/lab1"
+input_dir="$hdfs_dir/input"
+output_dir="$hdfs_dir/output"
+files_dir="/home/ubuntu/textcorpora/shakespeare-*"
+class_name="WordCountClean"
+merge_output="word-count-shakespeare-clean.txt"
+
+# === SETUP HDFS INPUT ===
+hdfs dfs -mkdir -p "$input_dir"
+hdfs dfs -put -f $files_dir "$input_dir/"
+
+# === COMPILE & PACKAGE ===
+chmod +x ./compile-map-reduce
+./compile-map-reduce $class_name
+
+# === RUN MAPREDUCE JOB ===
+chmod +x ./run-map-reduce
+./run-map-reduce $class_name $input_dir $output_dir
+
+# === MERGE OUTPUT AND SHOW TOP N ===
+hdfs dfs -getmerge $output_dir $merge_output
+echo "Top $TOP_N most frequent cleaned words:"
+cat $merge_output | sort -k2 -nr | head -n $TOP_N
+
+# === CLEANUP ===
+hdfs dfs -rm -r -f "$input_dir" "$output_dir" "$hdfs_dir"
+rm -f $merge_output $class_name.jar *.class

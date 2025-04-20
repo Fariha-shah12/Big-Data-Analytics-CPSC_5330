@@ -1,0 +1,35 @@
+#!/bin/bash
+#Fariha word-count-shakespeare script Lab01
+set -e
+
+hdfs_dir="/lab1"
+input_dir=$hdfs_dir"/input"
+output_dir=$hdfs_dir"/output"
+files_dir="/home/ubuntu/textcorpora/shakespeare-*"
+class_name="WordCount"
+merge_output="word-count-shakespeare.txt"
+
+#Copy the input files to hdfs input directory
+hdfs dfs -mkdir $hdfs_dir
+hdfs dfs -mkdir $input_dir
+hdfs dfs -put $files_dir $input_dir/
+
+#compile and run compile-map-reduce script
+chmod +x ./compile-map-reduce
+./compile-map-reduce $class_name
+
+#compile and run run-map-reduce script
+chmod +x ./run-map-reduce
+./run-map-reduce $class_name $input_dir $output_dir
+
+#Merge all output to text file then sort then into order and display 10 most frequent result
+hdfs dfs -getmerge $output_dir $merge_output
+cat $merge_output | sort -rn -k 2 | head -n 10
+
+#Remove files 
+hdfs dfs -rm -r -f $input_dir
+hdfs dfs -rm -r -f $output_dir
+hdfs dfs -rm -r -f $hdfs_dir
+rm -r $merge_output $class_name.jar *.class
+
+#end
