@@ -66,3 +66,8 @@ When you open Windows Terminal, it may default to PowerShell.
 Use the dropdown ⌄ to open a new Ubuntu session.
 
 These are the basic steps you are suppose to follow before starting with labs.
+
+
+Note: I know this course can be a pain, but here I am sharing the solutions. I struggled a lot to get these labs done on time, and I don’t want others to go through the same frustration.
+So here you’ll find complete solutions for all the labs throughout the course. If you face any difficulty with any part, feel free to email me at fshah1@seattleu.edu.
+
