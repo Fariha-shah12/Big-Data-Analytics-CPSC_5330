@@ -56,3 +56,16 @@ scp -i keys/bda_demo.pem /mnt/c/Users/dell/Downloads/textcorpora/ ubuntu@<public
 # Format HDFS and start NameNode/DataNodes
 /usr/local/hadoop/bin/hdfs namenode -format
 /usr/local/hadoop/sbin/start-dfs.sh
+```
+
+Make sure the path to your textcorpora folder is correct. The path may differ on your system.
+To check the folder's path, use:
+
+```bash
+sudo find / -name textcorpora
+pwd
+```
+
+sudo find / -name textcorpora: Searches your system for the folder.
+
+pwd: Displays your current working directory.
