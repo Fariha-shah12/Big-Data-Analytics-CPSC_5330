@@ -1,0 +1,46 @@
+#!/usr/bin/python3
+
+import sys
+
+def read_input(file):
+    for line in file:
+        yield line.strip().split("\t")
+
+def reducer():
+    current_key = None
+    total = 0.0
+    count = 0
+    min_delay = float('inf')
+    max_delay = float('-inf')
+
+    for key, value in read_input(sys.stdin):
+        try:
+            value = float(value)
+        except ValueError:
+            continue
+        
+        if current_key == key:
+            total += value
+            count += 1
+            if value < min_delay:
+                min_delay = value
+            if value > max_delay:
+                max_delay = value
+        else:
+            if current_key:
+                output_results(current_key, total, count, min_delay, max_delay)
+            current_key = key
+            min_delay = value
+            max_delay = value
+            total = value
+            count = 1
+
+    if current_key == key:
+        output_results(current_key, total, count, min_delay, max_delay)
+
+def output_results(key, total, count, min_delay, max_delay):
+    average = total / count if count != 0 else 0
+
+    print(f"{key}\t{min_delay:.6f}\t{max_delay:.6f}\t{average:.6f}")
+
+reducer()

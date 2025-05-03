@@ -1,0 +1,32 @@
+DROP TABLE IF EXISTS term_count;
+CREATE EXTERNAL TABLE term_count (
+  doc_id STRING,
+  term STRING,
+  count INT
+)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+STORED AS TEXTFILE
+LOCATION '/output-doc-term';
+
+DROP TABLE IF EXISTS doc_count;
+CREATE EXTERNAL TABLE doc_count (
+  doc_id STRING,
+  total INT
+)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+STORED AS TEXTFILE
+LOCATION '/output-doc';
+
+DROP TABLE IF EXISTS term_frequency;
+CREATE TABLE term_frequency AS
+SELECT
+  t.doc_id,
+  t.term,
+  t.count * 1.0 / d.total AS frequency_pct
+FROM term_count t
+JOIN doc_count d
+ON t.doc_id = d.doc_id;
+
+INSERT OVERWRITE DIRECTORY '/output-final'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
+SELECT * FROM term_frequency;

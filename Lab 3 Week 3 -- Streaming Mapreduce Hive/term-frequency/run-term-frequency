@@ -1,0 +1,30 @@
+#!/bin/bash
+
+#Fariha Shell Script for lab 03
+# Make sure all necessary scripts are executable
+chmod +x run-term-count-doc-and-term
+chmod +x run-term-count-doc
+chmod +x term-count-doc-and-term/mapper
+chmod +x term-count-doc-and-term/reducer
+chmod +x term-count-doc/mapper
+chmod +x term-count-doc/reducer
+
+# Clean HDFS
+hadoop fs -rm -r /output-doc-term /output-doc /output-final
+
+# Upload data
+hadoop fs -mkdir /input
+hadoop fs -put ../textcorpora/* /input
+
+# Run both MapReduce jobs
+./run-term-count-doc-and-term
+./run-term-count-doc
+
+# Run Hive script
+hive -f term-frequency.hive
+
+# Copy Hive output from HDFS to local file
+hadoop fs -getmerge /output-final ../term-frequency.txt
+
+# Clean up HDFS
+hadoop fs -rm -r /output-doc-term /output-doc /output-final /input

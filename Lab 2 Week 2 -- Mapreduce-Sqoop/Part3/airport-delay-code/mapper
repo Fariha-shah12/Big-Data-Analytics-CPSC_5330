@@ -1,0 +1,18 @@
+#!/usr/bin/python3
+
+import sys
+import json
+
+for line in sys.stdin:
+    line = line.strip()
+    try:
+        record = json.loads(line)
+    except ValueError:
+        continue
+        
+    airport_code = record['Airport']['Code']
+    year = record['Time']['Year']
+    total_flights = record['Statistics']['Flights']['Total']
+    delayed_flights = record['Statistics']['Flights']['Delayed']
+        
+    print(f"{year}\t{airport_code}\t{delayed_flights}\t{total_flights}")

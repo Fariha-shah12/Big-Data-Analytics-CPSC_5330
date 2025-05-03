@@ -1,0 +1,13 @@
+#!/bin/bash
+hadoop fs -rm -r /output-doc
+
+STREAMING_JAR="/usr/local/hadoop/share/hadoop/tools/lib/hadoop-streaming*.jar"
+
+hadoop jar $STREAMING_JAR \
+  -input /output-doc-term \
+  -output /output-doc \
+  -mapper term-count-doc/mapper \
+  -reducer term-count-doc/reducer \
+  -file term-count-doc/mapper \
+  -file term-count-doc/reducer
+

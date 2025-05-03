@@ -1,0 +1,37 @@
+#!/usr/bin/python3
+
+import sys
+
+def main():
+    current_minute = None
+    current_counts = {
+        'INFO': 0,
+        'WARN': 0,
+        'ERROR': 0,
+        'FATAL': 0
+    }
+
+    for line in sys.stdin:
+        line = line.strip()
+        parts = line.split('\t')
+        if len(parts) != 3:
+            continue
+
+        minute, severity, count = parts
+        count = int(count)
+
+        if minute != current_minute:
+            if current_minute is not None:
+                total = sum(current_counts.values())
+                print(f"{current_minute}\t{total}\t{current_counts['INFO']}\t{current_counts['WARN']}\t{current_counts['ERROR']}\t{current_counts['FATAL']}")
+            current_minute = minute
+            current_counts = {'INFO': 0, 'WARN': 0, 'ERROR': 0, 'FATAL': 0}
+
+        if severity in current_counts:
+            current_counts[severity] += count
+
+    if current_minute is not None:
+        total = sum(current_counts.values())
+        print(f"{current_minute}\t{total}\t{current_counts['INFO']}\t{current_counts['WARN']}\t{current_counts['ERROR']}\t{current_counts['FATAL']}")
+
+main()

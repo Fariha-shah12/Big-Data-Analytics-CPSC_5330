@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# Fariha Shell Script for Lab02-Part2
+
+
+# Step 0: Mapper & Reducer Permissions
+chmod +x ./airline-delay-code/mapper
+chmod +x ./airline-delay-code/reducer
+
+# Step 1: Setup DB - Verify connection and tables
+sqoop list-databases --connect jdbc:mysql://localhost/ --username root --password root
+
+sqoop list-tables --connect jdbc:mysql://localhost/airline --username root --password root
+
+# Step 2: Handle HDFS directory
+if hdfs dfs -test -d /database/airline; then
+    echo "HDFS directory exists. Deleting..."
+    hdfs dfs -rm -r /database/airline
+fi
+
+hdfs dfs -mkdir -p /database/airline
+
+# Step 3: Setup temp dir for Hadoop classpath (optional for compiled JARs, usually not needed for streaming)
+mkdir -p /tmp/bindir
+export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:/tmp/bindir
+
+# Step 4: Sqoop import command
+sqoop import \
+  --connect jdbc:mysql://localhost/airline \
+  --username root \
+  --password root \
+  --table On_Time_On_Time_Performance_2016_1 \
+  --columns "Carrier,ArrDelayMinutes" \
+  --target-dir /database/airline/On_Time_On_Time_Performance_2016_1 \
+  --split-by Carrier \
+  --fields-terminated-by '\t' \
+  --as-textfile \
+  --m 1
+
+# Step 5: MapReduce job using mapper & reducer
+hdfs dfs -cat /database/airline/On_Time_On_Time_Performance_2016_1/part* \
+  | ./airline-delay-code/mapper \
+  | sort \
+  | ./airline-delay-code/reducer \
+  | sort -k4 -nr > airline_delay_report.txt
+
+# Step 6: Output Results
+echo "=== Final Report (Top 10) ==="
+head airline_delay_report.txt
+

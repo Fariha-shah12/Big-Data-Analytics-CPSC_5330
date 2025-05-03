@@ -1,0 +1,21 @@
+#!/usr/bin/python3
+import sys
+from collections import defaultdict
+
+current_key = None
+current_count = 0
+
+for line in sys.stdin:
+    docid, term, count = line.strip().split('\t')
+    key = (docid, term)
+
+    if current_key == key:
+        current_count += int(count)
+    else:
+        if current_key:
+            print(f'{current_key[0]}\t{current_key[1]}\t{current_count}')
+        current_key = key
+        current_count = int(count)
+
+if current_key:
+    print(f'{current_key[0]}\t{current_key[1]}\t{current_count}')

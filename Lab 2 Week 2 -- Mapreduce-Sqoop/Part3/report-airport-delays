@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# Make scripts executable
+chmod +x ./airport-delay-code/mapper
+chmod +x ./airport-delay-code/reducer
+
+# Clean old HDFS dirs if they exist
+hdfs dfs -rm -r -f /airport-delay/input
+hdfs dfs -rm -r -f /airport-delay/output
+
+
+# Upload local JSON files to HDFS
+hdfs dfs -mkdir -p /airport-delay/input
+
+
+# === Upload ONLY the first 10 JSON files to HDFS ===
+#ls airport-delay-data/*.json | head -n 20 | while read file; do
+ #   hdfs dfs -put "$file" /airport-delay/input/
+#done
+
+
+hdfs dfs -put ./airport-delay-data/* /airport-delay/input
+
+STREAMING_JAR="/usr/local/hadoop/share/hadoop/tools/lib/hadoop-streaming*.jar"
+
+# Run Hadoop Streaming Job
+hadoop jar $STREAMING_JAR \
+  -input /airport-delay/input \
+  -output /airport-delay/output \
+  -mapper ./airport-delay-code/mapper \
+  -reducer ./airport-delay-code/reducer \
+  -file ./airport-delay-code/mapper \
+  -file ./airport-delay-code/reducer
+
+# Save results to output file
+hdfs dfs -cat /airport-delay/output/part-* > airport-delay-by-year.txt
+
+# === Print the output to console ===
+cat airport-delay-by-year.txt

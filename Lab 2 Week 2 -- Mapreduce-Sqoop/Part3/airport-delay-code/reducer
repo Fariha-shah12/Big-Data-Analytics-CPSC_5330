@@ -1,0 +1,42 @@
+#!/usr/bin/python3
+
+import sys
+
+def output_results(year, airport_delays):
+    min_code, max_code = None, None
+    min_ratio, max_ratio = float('inf'), 0
+    
+    for code, data in airport_delays.items():
+        ratio = data['delayed'] / data['total']
+        if ratio < min_ratio:
+            min_ratio = ratio
+            min_code = code
+        if ratio > max_ratio:
+            max_ratio = ratio
+            max_code = code
+
+    print(f"{year}\t{min_code},{min_ratio},{max_code},{max_ratio}")
+
+current_year = None
+airport_delays = {}
+
+for line in sys.stdin:
+    line = line.strip()
+    year, code, delayed, total = line.split('\t')
+    delayed = int(delayed)
+    total = int(total)
+
+    if year != current_year:
+        if current_year:
+            output_results(current_year, airport_delays)
+        current_year = year
+        airport_delays = {}
+
+    if code in airport_delays:
+        airport_delays[code]['delayed'] += delayed
+        airport_delays[code]['total'] += total
+    else:
+        airport_delays[code] = {'delayed': delayed, 'total': total}
+    
+if current_year:
+    output_results(current_year, airport_delays)

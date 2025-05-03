@@ -1,0 +1,53 @@
+#!/bin/bash
+#Fariha process-log-file script  Lab02-part1
+# Exit on any error
+set -e
+
+# === CONFIGURATION ===
+LOGFILE="Hadoop_2k.log"
+HDFS_INPUT="/input/$LOGFILE"
+HDFS_OUTPUT="/output/log-processing-output"
+LOCAL_OUTPUT="log-processing-output.txt"
+CODE_DIR="log-processing-code"
+MAPPER="$CODE_DIR/mapper"
+REDUCER="$CODE_DIR/reducer"
+STREAMING_JAR="/usr/local/hadoop/share/hadoop/tools/lib/hadoop-streaming*.jar"
+
+# === STEP 0: Make scripts executable ===
+echo " Making mapper and reducer executable..."
+chmod +x "$MAPPER"
+chmod +x "$REDUCER"
+
+
+# === STEP 1: Upload Log File to HDFS ===
+echo "Uploading $LOGFILE to HDFS..."
+hdfs dfs -rm -f $HDFS_INPUT > /dev/null 2>&1 || true
+hdfs dfs -mkdir -p /input
+hdfs dfs -put -f $LOGFILE /input/
+
+# === STEP 2: Run Hadoop Streaming ===
+echo "Running Hadoop Streaming job..."
+hdfs dfs -rm -r -f $HDFS_OUTPUT > /dev/null 2>&1 || true
+
+hadoop jar $STREAMING_JAR \
+  -input $HDFS_INPUT \
+  -output $HDFS_OUTPUT \
+  -mapper "$MAPPER" \
+  -reducer "$REDUCER" \
+  -file "$MAPPER" \
+  -file "$REDUCER"
+
+# === STEP 3: Merge, Sort & Save Output ===
+echo " Merging and sorting output..."
+hdfs dfs -getmerge $HDFS_OUTPUT temp_output.txt
+sort -n -k1 temp_output.txt > $LOCAL_OUTPUT
+rm temp_output.txt
+
+# === STEP 4: Show Final Output ===
+echo -e "\n Final Output (sorted by minute):"
+cat $LOCAL_OUTPUT
+
+# === STEP 5: Clean Up HDFS (Optional) ===
+echo "Cleaning up HDFS input/output directories..."
+hdfs dfs -rm -r -f /input
+hdfs dfs -rm -r -f /output
